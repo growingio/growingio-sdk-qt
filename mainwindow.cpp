@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "growinganalytics.h"
+#include "growing_analytics.h"
 #include "worker.h"
 #include <QThread>
 
@@ -15,11 +15,11 @@ MainWindow::MainWindow(QWidget *parent)
     options.set_server_url("https://napi.growingio.com");
     analytics_ = new GROWING_NAMESPACE::GrowingAnalytics(this, options);
 
+    analytics_->SetUserId("187****7841");
+
     ui->setupUi(this);
     QObject::connect(ui->btn_cstm, &QPushButton::clicked, this, [=]() {
         GROWING_NAMESPACE::CustomEvent event;
-        event.set_device_id("device_id_18101010202");
-        event.set_user_id("user_id_18101010202");
         event.set_attributes({{"key_1", "value_1"}});
         event.set_event_name("web_11");
         analytics_->SendEvent(event);
@@ -27,8 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     QObject::connect(ui->btn_ppl, &QPushButton::clicked, this, [=]() {
         GROWING_NAMESPACE::LoginUserAttributesEvent event;
-        event.set_device_id("device_id_18101010202");
-        event.set_user_id("user_id_18101010202");
         event.set_attributes({{"cpp_user_key", "value_1"}});
         analytics_->SendEvent(event);
     });

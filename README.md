@@ -22,35 +22,36 @@ GrowingAnalytics 提供Qt 5上采集数据到GrowingIO平台的能力
 |方法名称|类型|是否必填|说明|
 | --- | --- | --- | --- |
 |set_event_name|QString|是|埋点事件的名称|
-|set_user_id|QString|是|埋点事件的登录用户id|
-|set_device_id|QString|是|埋点事件的访问用户id|
 |set_attributes|QHash<QString, QString>|是|埋点事件的属性|
 
 ** 代码示例 **
 
 ```C++
 GROWING_NAMESPACE::CustomEvent event;
-event.set_device_id("device_id_18101010202");
-event.set_user_id("user_id_18101010202");
 event.set_attributes({{"key_1", "value_1"}});
 event.set_event_name("web_11");
 analytics_->SendEvent(event);
 
 ```
 
+#### 设置登录用户
+设置登录用户id
+
+** 代码示例 **
+
+```C++
+analytics_->SetUserId("187****7841");
+```
+
 #### 发送登录用户属性
 |方法名称|类型|是否必填|说明|
 | --- | --- | --- | --- |
-|set_user_id|QString|是|埋点事件的登录用户id|
-|set_device_id|QString|是|埋点事件的访问用户id|
 |set_attributes|QHash<QString, QString>|是|埋点事件的属性|
 
 ** 代码示例 **
 
 ```C++
 GROWING_NAMESPACE::LoginUserAttributesEvent event;
-event.set_device_id("device_id_18101010202");
-event.set_user_id("user_id_18101010202");
 event.set_attributes({{"cpp_user_key", "value_1"}});
 analytics_->SendEvent(event);
 ```

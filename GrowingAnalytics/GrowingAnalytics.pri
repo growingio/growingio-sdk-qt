@@ -5,7 +5,8 @@ QT += network
 SOURCES +=
 
 HEADERS += \
-    $$PWD/growinganalytics.h \
-    $$PWD/growingevents.h \
-    $$PWD/growingmacros.h \
-    $$PWD/growingoptions.h
+    $$PWD/growing_analytics.h \
+    $$PWD/growing_device_info.h \
+    $$PWD/growing_events.h \
+    $$PWD/growing_macros.h \
+    $$PWD/growing_options.h

@@ -1,5 +1,5 @@
-#ifndef GROWINGMACROS_H
-#define GROWINGMACROS_H
+#ifndef GROWING_MACROS_H
+#define GROWING_MACROS_H
 
 #define GROWING_STRINGIFY(S) GROWING_STRINGIFY_(S)
 #define GROWING_STRINGIFY_(S) #S
@@ -22,4 +22,4 @@ namespace growing {           \
 }
 #define GROWING_NAMESPACE growing::GROWING_CONCAT(v, GROWING_ABI_VERSION_NO)
 
-#endif // GROWINGMACROS_H
+#endif // GROWING_MACROS_H

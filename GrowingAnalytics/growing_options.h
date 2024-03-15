@@ -1,10 +1,10 @@
-#ifndef GROWINGOPTIONS_H
-#define GROWINGOPTIONS_H
+#ifndef GROWING_OPTIONS_H
+#define GROWING_OPTIONS_H
 
 #include <QSharedData>
 #include <QSharedDataPointer>
 #include <QObject>
-#include "growingmacros.h"
+#include "growing_macros.h"
 
 GROWING_BEGIN_NAMESPACE
 
@@ -65,4 +65,4 @@ private:
 
 GROWING_END_NAMESPACE
 
-#endif // GROWINGOPTIONS_H
+#endif // GROWING_OPTIONS_H

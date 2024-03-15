@@ -1,13 +1,15 @@
-#ifndef GROWINGANALYTICS_H
-#define GROWINGANALYTICS_H
+#ifndef GROWING_ANALYTICS_H
+#define GROWING_ANALYTICS_H
 
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonArray>
-#include "growingevents.h"
-#include "growingoptions.h"
-#include "growingmacros.h"
+#include <QSettings>
+#include "growing_device_info.h"
+#include "growing_events.h"
+#include "growing_options.h"
+#include "growing_macros.h"
 
 #ifdef QT_GUI_LIB
 #include <QGuiApplication>
@@ -21,9 +23,11 @@ class GrowingAnalytics : public QObject
 {
     Q_OBJECT
 public:
+    // TODO：目前GrowingAnalytics对象所属线程需要存在事件循环（线程管理移动到sdk内）
     // 构造时可以指定QApplication为parent，析构时自动释放
-    GrowingAnalytics(QObject* parent = nullptr, GrowingOptions options = GrowingOptions()): QObject(parent), network_access_manager_(this), options_(options) {
-
+    GrowingAnalytics(QObject* parent = nullptr, GrowingOptions options = GrowingOptions()): QObject(parent),
+        network_access_manager_(this),
+        options_(options) {
         // 将多线程消息转到当前对象所属线程处理
         connect(this, &GrowingAnalytics::SendMessage, this, &GrowingAnalytics::PostMessage, Qt::QueuedConnection);
 #ifdef QT_GUI_LIB
@@ -56,6 +60,12 @@ public:
         }
         emit SendMessage(data);
     }
+
+    void SetUserId(QString userId) {
+        if (userId != NULL && !userId.isEmpty()) {
+            GrowingDeviceInfo::instance().set_user_id(userId);
+        }
+    }
 // private slots:
 //     void ReplyFinished(QNetworkReply* reply) {
 //         qDebug() << reply->errorString();
@@ -82,6 +92,8 @@ private:
             "GrowingAnalytics/" GROWING_VERSION " Qt/" QT_VERSION_STR;
     }
 private slots:
+
+    // TODO: 增加sqlite缓存数据（批量上报、无网数据存储）
     void PostMessage(QByteArray data) {
         const QUrl url(GetCollectServerUrl());
         QNetworkRequest request(url);
@@ -121,4 +133,4 @@ private slots:
 
 GROWING_END_NAMESPACE
 
-#endif // GROWINGANALYTICS_H
+#endif // GROWING_ANALYTICS_H
