@@ -37,17 +37,14 @@ T& Singleton<T, D>::instance()
 class GrowingDeviceInfo: public Singleton<GrowingDeviceInfo> {
 public:
     GrowingDeviceInfo(): settings_("growing_cache", QSettings::NativeFormat) {
+        // GrowingDeviceInfo单例初始化时重置session
+        session_id_ = CreateUuid();
+
         // 测试各个平台时, 存储文件查找路径, 推荐直接输出fileName找到对应路径
         // https://doc.qt.io/qt-5/qsettings.html#locations-where-application-settings-are-stored
-        qDebug() << settings_.fileName();
         device_id_ = settings_.value("device_id").toString();
         if (device_id_.isEmpty()) {
-            // since 5.11 https://bugreports.qt.io/browse/QTBUG-885?focusedCommentId=356049&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-            device_id_ = QUuid::createUuid().toString(QUuid::WithoutBraces);
-#elif
-            device_id_ = QUuid::createUuid().toString().mid(1, 36);
-#endif
+            device_id_ = CreateUuid();
             settings_.setValue("device_id", device_id_);
         }
 
@@ -84,60 +81,76 @@ public:
     }
 
 public:
-    QString device_id() {
+    QString device_id() const {
         return device_id_;
     }
-    int width() {
+    int width() const {
         return width_;
     }
-    int height() {
+    int height() const {
         return height_;
     }
-    QString app_name() {
+    QString app_name() const {
         return app_name_;
     }
-    QString app_version() {
+    QString app_version() const {
         return app_version_;
     }
-    QString language() {
+    QString language() const {
         return language_;
     }
     void set_user_id(QString user_id) {
         settings_.setValue("user_id", user_id);
         user_id_ = user_id;
     }
-    QString user_id() {
+    QString user_id() const {
         return user_id_;
     }
     void set_user_key(QString user_key) {
         settings_.setValue("user_key", user_key);
         user_key_ = user_key;
     }
-    QString user_key() {
+    QString user_key() const {
         return user_key_;
     }
-    QString operating_system() {
+    QString operating_system() const {
         return operating_system_;
     }
-    QString operating_system_version() {
+    QString operating_system_version() const {
         return operating_system_version_;
     }
-    QString platform_version() {
+    QString platform_version() const {
         return platform_version_;
     }
-    QString platform() {
+    QString platform() const {
         return platform_;
+    }
+    QString session_id() const {
+        return session_id_;
     }
 
 public:
     void ClearUser() {
+        user_id_.clear();
+        user_key_.clear();
         settings_.remove("user_id");
         settings_.remove("user_key");
     }
 
 private:
+    QString CreateUuid() {
+        // since 5.11 https://bugreports.qt.io/browse/QTBUG-885?focusedCommentId=356049&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+        return QUuid::createUuid().toString(QUuid::WithoutBraces);
+#elif
+        return QUuid::createUuid().toString().mid(1, 36);
+#endif
+    }
+
+private:
     QSettings settings_;
     QString device_id_;
+    QString session_id_;
 
     int width_;
     int height_;

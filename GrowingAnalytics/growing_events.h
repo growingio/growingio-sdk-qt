@@ -9,10 +9,9 @@
 
 GROWING_BEGIN_NAMESPACE
 
-class Event
-{
+class Event {
 public:
-    Event() = default;
+    Event(): tm_(QDateTime::currentMSecsSinceEpoch()) {}
     virtual ~Event() = default;
     QString ToJson() {
         QJsonObject json;
@@ -20,54 +19,93 @@ public:
         return QJsonDocument(json).toJson(QJsonDocument::Compact);
     }
     virtual void Write(QJsonObject& json) const {
-        // 获取系统信息
-        json["platform"] = GrowingDeviceInfo::instance().platform();
-        // json["platform"] = "QT";
+        json["d"] = domain();
 
-        // 获取系统版本
-        json["operatingSystem"] = GrowingDeviceInfo::instance().operating_system();
-        json["platformVersion"] = GrowingDeviceInfo::instance().platform_version();
-        // operatingSystemVersion废弃，json不允许发送该字段
-        // json["operatingSystemVersion"] = GrowingDeviceInfo::instance().operating_system_version();
+        json["s"] = GrowingDeviceInfo::instance().session_id();
+        json["u"] = GrowingDeviceInfo::instance().device_id();
 
-        // 获取屏幕分辨率
+        json["t"] = GetEventType();
+        json["tm"] = tm_;
+
+        QString user_id = GrowingDeviceInfo::instance().user_id();
+        if (!user_id.isEmpty()) {
+            json["cs1"] = user_id;
+        }
+
+    }
+protected:
+    virtual QString GetEventType() const = 0;
+public:
+    QString domain() const {
+        return domain_;
+    }
+    void set_domain(QString domain) {
+        domain_ = domain;
+    }
+    qint64 tm() {
+        return tm_;
+    }
+protected:
+    QString domain_;
+    qint64 tm_;
+};
+
+class VisitEvent: public Event {
+public:
+    VisitEvent() = default;
+    virtual ~VisitEvent() override = default;
+    virtual void Write(QJsonObject& json) const override {
+        Event::Write(json);
+        // json["b"] = GrowingDeviceInfo::instance().platform();
+        // 考虑到saas的校验逻辑，不做平台判断
+        json["b"] = "Windows";
+
         int width = GrowingDeviceInfo::instance().width();
         int height = GrowingDeviceInfo::instance().height();
         if (width > 0) {
-            json["screenWidth"] = width;
+            json["sw"] = width;
         }
         if (height > 0) {
-            json["screenHeight"] = height;
+            json["sh"] = height;
         }
 
-        json["appName"] = GrowingDeviceInfo::instance().app_name();
-        json["appVersion"] = GrowingDeviceInfo::instance().app_version();
+        json["os"] = GrowingDeviceInfo::instance().operating_system();
+        json["osv"] = GrowingDeviceInfo::instance().operating_system_version();
 
-        // 获取语言
-        json["language"] = GrowingDeviceInfo::instance().language();
+        json["cv"] = GrowingDeviceInfo::instance().app_version();
+        json["sn"] = GrowingDeviceInfo::instance().app_name();
 
-        // 获取设备标识
-        json["deviceId"] = GrowingDeviceInfo::instance().device_id();
+        json["l"] = GrowingDeviceInfo::instance().language();
 
-        // 获取用户信息
-        QString user_id = GrowingDeviceInfo::instance().user_id();
-        QString user_key = GrowingDeviceInfo::instance().user_key();
-        if (!user_id.isEmpty()) {
-            json["userId"] = user_id;
-        }
-        if (!user_key.isEmpty()) {
-            json["userKey"] = user_key;
-        }
+        json["av"] = GROWING_VERSION;
+    }
+protected:
+    virtual QString GetEventType() const override {
+        return "vst";
+    }
+};
 
-        // 获取时间戳
-        json["timestamp"] = QDateTime::currentMSecsSinceEpoch();
-        // json["timezoneOffset"] = - (QTimeZone::systemTimeZone().offsetFromUtc(QDateTime::currentDateTime()) / 60);
+class PageEvent: public Event {
+public:
+    PageEvent() = default;
+    virtual ~PageEvent() override = default;
+    virtual void Write(QJsonObject& json) const override {
+        Event::Write(json);
+        json["p"] = "MainPage";
+    }
+protected:
+    virtual QString GetEventType() const override {
+        return "page";
+    }
+};
 
-        // 获取事件类型
-        json["eventType"] = GetEventType();
-
-        json["dataSourceId"] = data_source_id();
-
+class BaseAttributesEvent: public Event
+{
+public:
+    BaseAttributesEvent() = default;
+    virtual ~BaseAttributesEvent() override = default;
+    virtual void Write(QJsonObject& json) const override {
+        Event::Write(json);
         if (!attributes_.isEmpty()) {
             QJsonObject attributes_json;
             QHash<QString, QString>::const_iterator iter = attributes_.constBegin();
@@ -77,24 +115,12 @@ public:
                 }
                 iter++;
             }
-            json["attributes"] = attributes_json;
+            json["var"] = attributes_json;
         }
     }
 protected:
-    virtual QString GetEventType() const = 0;
-
-protected:
-    QString data_source_id_;
     QHash<QString, QString> attributes_;
 public:
-    QString data_source_id() const {
-        return data_source_id_;
-    }
-    void set_data_source_id(QString data_source_id) {
-        if (data_source_id_ != data_source_id) {
-            data_source_id_ = data_source_id;
-        }
-    }
     QHash<QString, QString> attributes() const {
         return attributes_;
     }
@@ -106,20 +132,22 @@ public:
     }
 };
 
-class CustomEvent: public Event {
+class CustomEvent: public BaseAttributesEvent {
 public:
-    CustomEvent(): Event() {}
+    CustomEvent() = default;
     virtual ~CustomEvent() override = default;
     virtual void Write(QJsonObject& json) const override {
-        Event::Write(json);
-        json["eventName"] = event_name();
+        BaseAttributesEvent::Write(json);
+        json["n"] = event_name();
+        json["ptm"] = ptm_;
     }
 protected:
     virtual QString GetEventType() const override {
-        return "CUSTOM";
+        return "cstm";
     }
 protected:
     QString event_name_;
+    qint64 ptm_;
 public:
     QString event_name() const {
         return event_name_;
@@ -129,18 +157,39 @@ public:
             event_name_ = event_name;
         }
     }
+    qint64 ptm() const {
+        return ptm_;
+    }
+    void set_ptm(qint64 ptm) {
+        if (ptm_ != ptm) {
+            ptm_ = ptm;
+        }
+    }
 };
 
-class LoginUserAttributesEvent: public Event {
+class LoginUserAttributesEvent: public BaseAttributesEvent {
 public:
-    LoginUserAttributesEvent(): Event() {}
+    LoginUserAttributesEvent() = default;
     virtual ~LoginUserAttributesEvent() override = default;
     virtual void Write(QJsonObject& json) const override {
-        Event::Write(json);
+        BaseAttributesEvent::Write(json);
     }
 protected:
     virtual QString GetEventType() const override {
-        return "LOGIN_USER_ATTRIBUTES";
+        return "ppl";
+    }
+};
+
+class VistorAttributesEvent: public BaseAttributesEvent {
+public:
+    VistorAttributesEvent() = default;
+    virtual ~VistorAttributesEvent() override = default;
+    virtual void Write(QJsonObject& json) const override {
+        BaseAttributesEvent::Write(json);
+    }
+protected:
+    virtual QString GetEventType() const override {
+        return "vstr";
     }
 };
 

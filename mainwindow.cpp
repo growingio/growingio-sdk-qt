@@ -10,24 +10,36 @@ MainWindow::MainWindow(QWidget *parent)
 {
     GROWING_NAMESPACE::GrowingOptions options;
     options.set_debug(true);
-    options.set_data_source_id("a67a308c0ba3077c");
-    options.set_account_id("fdf3a1ab7d0b2eea");
-    options.set_server_url("https://napi.growingio.com");
+    options.set_server_url("https://api.growingio.com");
+    options.set_project_id("0a1b4**********************bdb96");
+    options.set_domain("76e**********6b2");
     analytics_ = new GROWING_NAMESPACE::GrowingAnalytics(this, options);
 
-    analytics_->SetUserId("187****7841");
-
     ui->setupUi(this);
+
+    QObject::connect(ui->btn_set_user, &QPushButton::clicked, this, [=]() {
+        analytics_->SetUserId("187****7841");
+    });
+    QObject::connect(ui->btn_clear_user, &QPushButton::clicked, this, [=]() {
+        analytics_->ClearUser();
+    });
+
     QObject::connect(ui->btn_cstm, &QPushButton::clicked, this, [=]() {
         GROWING_NAMESPACE::CustomEvent event;
-        event.set_attributes({{"key_1", "value_1"}});
-        event.set_event_name("web_11");
+        event.set_attributes({{"qt_sdk_var", "qt_sdk_var_value"}});
+        event.set_event_name("qt_sdk_event");
         analytics_->SendEvent(event);
     });
 
     QObject::connect(ui->btn_ppl, &QPushButton::clicked, this, [=]() {
         GROWING_NAMESPACE::LoginUserAttributesEvent event;
-        event.set_attributes({{"cpp_user_key", "value_1"}});
+        event.set_attributes({{"qt_sdk_ppl_attr", "qt_sdk_ppl_attr_value"}});
+        analytics_->SendEvent(event);
+    });
+
+    QObject::connect(ui->btn_vstr, &QPushButton::clicked, this, [=]() {
+        GROWING_NAMESPACE::VistorAttributesEvent event;
+        event.set_attributes({{"qt_sdk_vstr_attr", "qt_sdk_vstr_attr_value"}});
         analytics_->SendEvent(event);
     });
 

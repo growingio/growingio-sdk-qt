@@ -30,6 +30,15 @@ public:
         options_(options) {
         // 将多线程消息转到当前对象所属线程处理
         connect(this, &GrowingAnalytics::SendMessage, this, &GrowingAnalytics::PostMessage, Qt::QueuedConnection);
+        // 初始化完成发送vst
+        VisitEvent vst;
+        vst.set_domain(options_.domain());
+        // clazy-incorrect-emit警告类型是存在connect建立晚于信号发送的场景，此处不考虑该场景
+        emit SendMessage(EventToJson(vst) , 1); // NOLINT
+        PageEvent page;
+        page.set_domain(options_.domain());
+        this->ptm_ = page.tm();
+        emit SendMessage(EventToJson(page), 1);
 #ifdef QT_GUI_LIB
         // 处理退出信号，发送close事件
         // QObject::connect(QGuiApplication::instance(), &QGuiApplication::aboutToQuit, [](){
@@ -45,26 +54,27 @@ public:
     }
     virtual ~GrowingAnalytics() = default;
     void SendEvent(Event& event) {
-        event.set_data_source_id(options_.data_source_id());
-
-        QJsonArray json_array;
-        QJsonObject json_obj;
-        event.Write(json_obj);
-        json_array.push_back(json_obj);
-
-        QJsonDocument doc(json_array);
-        QByteArray data = doc.toJson(QJsonDocument::Compact);
-
         if (options_.debug()) {
             qDebug() << "send data";
         }
-        emit SendMessage(data);
+        event.set_domain(options_.domain());
+        try {
+            CustomEvent& custom_event = dynamic_cast<CustomEvent&>(event);
+            custom_event.set_ptm(ptm_);
+        } catch(std::bad_cast) {
+        }
+        emit SendMessage(EventToJson(event), 2);
     }
 
     void SetUserId(QString userId) {
-        if (userId != NULL && !userId.isEmpty()) {
+        // Qt6 不允许直接用NULL，!=存在ambiguous overload
+        if (userId != nullptr && !userId.isEmpty()) {
             GrowingDeviceInfo::instance().set_user_id(userId);
         }
+    }
+
+    void ClearUser() {
+        GrowingDeviceInfo::instance().ClearUser();
     }
 // private slots:
 //     void ReplyFinished(QNetworkReply* reply) {
@@ -73,29 +83,43 @@ public:
 private:
     QNetworkAccessManager network_access_manager_;
     GrowingOptions options_;
+    qint64 ptm_;
 
 // 发送信息信号
 signals:
     void SendSuccess(QString data);
     void SendFailure(int err_code, QString err_msg);
-    void SendMessage(QByteArray data);
+    void SendMessage(QByteArray data, int type);
 
 private:
     // body中实现编译器也会默认为inline（取决于编译器）
-    inline QString GetCollectServerUrl() {
-        return options_.server_url() + QLatin1String("/v3/projects/")
-                + options_.account_id() + QLatin1String("/collect");
+    inline QString GetCollectServerUrl(int type) {
+        switch (type) {
+        case 1:
+            return options_.server_url() + QLatin1String("/v3/") + options_.project_id() + QLatin1String("/windows/pv?stm=") + QString::number(QDateTime::currentMSecsSinceEpoch());
+        default:
+            return options_.server_url() + QLatin1String("/v3/") + options_.project_id() + QLatin1String("/windows/cstm?stm=") + QString::number(QDateTime::currentMSecsSinceEpoch());
+        }
     }
     inline QString GetUserAgent() {
         // Mozilla/5.0 (Symbian; U; N8-00; fi-FI) AppleWebKit/534.3 (KHTML, like Gecko) Qt/4.7.4 Mobile Safari/534.3
         return "Mozilla/5.0 (" + QSysInfo::prettyProductName() + "; " + QLocale::system().name() + ") "
             "GrowingAnalytics/" GROWING_VERSION " Qt/" QT_VERSION_STR;
     }
+    inline QByteArray EventToJson(Event& event) {
+        QJsonArray json_array;
+        QJsonObject json_obj;
+        event.Write(json_obj);
+        json_array.push_back(json_obj);
+
+        QJsonDocument doc(json_array);
+        return doc.toJson(QJsonDocument::Compact);
+    }
 private slots:
 
     // TODO: 增加sqlite缓存数据（批量上报、无网数据存储）
-    void PostMessage(QByteArray data) {
-        const QUrl url(GetCollectServerUrl());
+    void PostMessage(QByteArray data, int type) {
+        const QUrl url(GetCollectServerUrl(type));
         QNetworkRequest request(url);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         request.setHeader(QNetworkRequest::UserAgentHeader, GetUserAgent());

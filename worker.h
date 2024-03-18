@@ -13,8 +13,8 @@ public slots:
     void process() {
         if (analytics_) {
             GROWING_NAMESPACE::CustomEvent event;
-            event.set_attributes({{"key_1", "value_1"}});
-            event.set_event_name("web_12");
+            event.set_attributes({{"qt_sdk_var", "qt_sdk_value"}});
+            event.set_event_name("qt_sdk_event");
             analytics_->SendEvent(event);
         }
         qDebug() << "worker process finish";
