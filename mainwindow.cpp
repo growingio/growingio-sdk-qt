@@ -15,9 +15,16 @@ MainWindow::MainWindow(QWidget *parent)
     options.set_server_url("https://napi.growingio.com");
     analytics_ = new GROWING_NAMESPACE::GrowingAnalytics(this, options);
 
-    analytics_->SetUserId("187****7841");
-
     ui->setupUi(this);
+
+    QObject::connect(ui->btn_set_user, &QPushButton::clicked, this, [=]() {
+        analytics_->SetUserId("187****7841");
+    });
+
+    QObject::connect(ui->btn_clear_user, &QPushButton::clicked, this, [=]() {
+        analytics_->ClearUser();
+    });
+
     QObject::connect(ui->btn_cstm, &QPushButton::clicked, this, [=]() {
         GROWING_NAMESPACE::CustomEvent event;
         event.set_attributes({{"key_1", "value_1"}});

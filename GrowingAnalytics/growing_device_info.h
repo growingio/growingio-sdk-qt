@@ -84,53 +84,55 @@ public:
     }
 
 public:
-    QString device_id() {
+    QString device_id() const {
         return device_id_;
     }
-    int width() {
+    int width() const {
         return width_;
     }
-    int height() {
+    int height() const {
         return height_;
     }
-    QString app_name() {
+    QString app_name() const {
         return app_name_;
     }
-    QString app_version() {
+    QString app_version() const {
         return app_version_;
     }
-    QString language() {
+    QString language() const {
         return language_;
     }
     void set_user_id(QString user_id) {
         settings_.setValue("user_id", user_id);
         user_id_ = user_id;
     }
-    QString user_id() {
+    QString user_id() const {
         return user_id_;
     }
     void set_user_key(QString user_key) {
         settings_.setValue("user_key", user_key);
         user_key_ = user_key;
     }
-    QString user_key() {
+    QString user_key() const {
         return user_key_;
     }
-    QString operating_system() {
+    QString operating_system() const {
         return operating_system_;
     }
-    QString operating_system_version() {
+    QString operating_system_version() const {
         return operating_system_version_;
     }
-    QString platform_version() {
+    QString platform_version() const {
         return platform_version_;
     }
-    QString platform() {
+    QString platform() const {
         return platform_;
     }
 
 public:
     void ClearUser() {
+        user_id_.clear();
+        user_key_.clear();
         settings_.remove("user_id");
         settings_.remove("user_key");
     }

@@ -62,9 +62,13 @@ public:
     }
 
     void SetUserId(QString userId) {
-        if (userId != NULL && !userId.isEmpty()) {
+        if (userId != nullptr && !userId.isEmpty()) {
             GrowingDeviceInfo::instance().set_user_id(userId);
         }
+    }
+
+    void ClearUser() {
+        GrowingDeviceInfo::instance().ClearUser();
     }
 // private slots:
 //     void ReplyFinished(QNetworkReply* reply) {

@@ -63,6 +63,32 @@
      <string>多线程埋点</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_set_user">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>140</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>设置用户</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_clear_user">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>180</y>
+      <width>100</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清除用户</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

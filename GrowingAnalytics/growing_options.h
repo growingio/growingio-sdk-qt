@@ -12,7 +12,7 @@ class GrowingOptionsData: public QSharedData {
 public:
     GrowingOptionsData(): debug_(true), server_url_("https://napi.growingio.com") {}
     GrowingOptionsData(const GrowingOptionsData& obj)
-        : QSharedData(obj), debug_(obj.debug_), data_source_id_(obj.data_source_id_), server_url_(obj.server_url_) {}
+        : QSharedData(obj), debug_(obj.debug_), data_source_id_(obj.data_source_id_), account_id_(obj.account_id_), server_url_(obj.server_url_) {}
     ~GrowingOptionsData() {}
 private:
     bool debug_;

@@ -46,7 +46,7 @@ analytics_->SetUserId("187****7841");
 #### 发送登录用户属性
 |方法名称|类型|是否必填|说明|
 | --- | --- | --- | --- |
-|set_attributes|QHash<QString, QString>|是|埋点事件的属性|
+|set_attributes|QHash<QString, QString>|是|登录用户的属性|
 
 ** 代码示例 **
 
